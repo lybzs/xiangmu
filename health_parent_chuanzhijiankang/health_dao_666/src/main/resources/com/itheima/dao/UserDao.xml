@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.UserDao">
+    
+    <resultMap id="baseMap" type="sysUser">
+        <id property="id" column="id"></id>
+        <result column="username" property="username"></result>
+        <result column="password" property="password"></result>
+    </resultMap>
+
+    <resultMap id="findByUsernameMap" type="sysUser" extends="baseMap">
+        <collection property="roles" column="id" ofType="role"
+                    select="com.itheima.dao.RoleDao.findByListByUserId"></collection>
+    </resultMap>
+    
+    <select id="findByUsername" resultMap="findByUsernameMap" parameterType="string">
+        select * from t_user where username = #{username}
+    </select>
+
+</mapper>

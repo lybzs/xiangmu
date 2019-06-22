@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.SetmealDao">
+    <!--添加-->
+    <insert id="add" parameterType="setmeal">
+        -- 回显主键
+        <selectKey resultType="int" order="AFTER" keyColumn="id" keyProperty="id">
+            select last_insert_id()
+        </selectKey>
+        insert into t_setmeal (name,code,helpCode,sex,age,price,remark,attention,img)
+        values (#{name},#{code},#{helpCode},#{sex},#{age},#{price},#{remark},#{attention},#{img})
+    </insert>
+    <!---->
+    <insert id="insert">
+        insert into t_setmeal_checkgroup (setmeal_id , checkgroup_id) values (#{param1},#{param2})
+    </insert>
+    <!---->
+    <select id="findByPage" resultType="setmeal" parameterType="string">
+        select * from t_setmeal
+        <if test="value != null and value.length > 0">
+            where code = #{value} or name = #{value} or helpCode = #{value}
+        </if>
+    </select>
+    <!---->
+    <select id="findAll" resultType="setmeal">
+        select * from t_setmeal
+    </select>
+    <!---->
+    <!--基本映射:只映射简单属性和列-->
+    <resultMap id="baseMap" type="setmeal">
+        <!--列与属性的映射-->
+        <!--映射主键-->
+        <id column="id" property="id"></id>
+        <!--映射其他列-->
+        <result column="name" property="name"></result>
+        <result column="code" property="code"></result>
+        <result column="helpCode" property="helpCode"></result>
+        <result column="sex" property="sex"></result>
+        <result column="age" property="age"></result>
+        <result column="price" property="price"></result>
+        <result column="remark" property="remark"></result>
+        <result column="attention" property="attention"></result>
+        <result column="img" property="img"></result>
+    </resultMap>
+    <!--xtends="baseMap :继承resultMap-->
+    <resultMap id="findByIdMap" type="setmeal" extends="baseMap">
+        <!--只要写一对一,一对多映射,相同的列也需要手动映射-->
+        <!--映射checkGroups属性-->
+        <!--
+            property:属性名
+            ofType:属性类型的泛型
+            column:列名,作为参数
+            select:sql ,映射了某个方法
+            -->
+        <collection property="checkGroups"
+                    ofType="checkgroup"
+                    column="id"
+                    select="com.itheima.dao.CheckItemDao.findCheckItemListByCheckGroupId"></collection>
+    </resultMap>
+    <select id="findById" resultMap="findByIdMap" parameterType="int">
+        select * from t_setmeal where id = #{id}
+    </select>
+    <!---->
+    <select id="findSetmealCount" resultType="map">
+        SELECT COUNT(1) value,s.name
+      FROM t_order o,t_setmeal s
+      WHERE o.setmeal_id = s.id
+       GROUP BY o.setmeal_id
+    </select>
+
+    <select id="findHotSetmeal" resultType="map">
+      SELECT COUNT(1) setmeal_count,s.name,
+         COUNT(1)/(SELECT COUNT(1) FROM t_order) proportion
+         FROM t_order o,t_setmeal s
+         WHERE o.setmeal_id = s.id
+         GROUP BY o.setmeal_id
+         ORDER BY setmeal_count DESC LIMIT 3
+    </select>
+</mapper>
